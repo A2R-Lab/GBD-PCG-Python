@@ -27,3 +27,16 @@ This provides the following preconditoners
 4. Symmetric Stair: "SS" 
 
 While (1) and (2) only require the matrix A, (3) and (4) additional require the block_size (nx) to be passed in.
+
+### Citing
+To cite this work in your research, please use the following bibtex:
+```
+@misc{adabag2023mpcgpu,
+      title={MPCGPU: Real-Time Nonlinear Model Predictive Control through Preconditioned Conjugate Gradient on the GPU}, 
+      author={Emre Adabag and Miloni Atal and William Gerard and Brian Plancher},
+      year={2023},
+      eprint={2309.08079},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```

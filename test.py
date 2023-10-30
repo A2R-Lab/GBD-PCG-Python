@@ -1,4 +1,4 @@
-import pcg
+from PCG import PCG
 import numpy as np
 import utils
 
@@ -19,9 +19,13 @@ A = utils.psd_block_diagonal(nx, n_blocks)
 # Generate a random vector b
 b = np.random.rand(n, 1)
 
+# create PCG object
+options = {'preconditioner_type' : 'SS'}
+pcg = PCG(A,b,nx,n_blocks, options = options)
+x_pcg = pcg.solve()
 
+# compare
 x_numpy = np.linalg.solve(A, b)
-x_pcg = pcg.solve(A, b, "SS", nx)
 if(np.allclose(x_numpy,  x_pcg)):
 	print("Test passed")
 else:
@@ -30,3 +34,9 @@ else:
 	print(x_numpy)
 	print("PCG answer")
 	print(x_pcg)
+
+# print trace
+pcg.update_RETURN_TRACE(True)
+x_pcg, traces = pcg.solve()
+print("Printing Traces")
+print(traces)

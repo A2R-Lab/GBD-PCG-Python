@@ -21,7 +21,7 @@ b = np.random.rand(n, 1)
 
 # create PCG object
 options = {'preconditioner_type' : 'SS'}
-pcg = PCG(A,b,nx,n_blocks, options = options)
+pcg = PCG(A, b, nx, n_blocks, options = options)
 x_pcg = pcg.solve()
 
 # compare

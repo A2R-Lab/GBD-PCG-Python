@@ -2,7 +2,7 @@
 
 Python proof of concept for [GBD-PCG](https://github.com/A2R-Lab/GBD-PCG/tree/main). 
 
-Solves for x in Ax = b, using the Preconditioned Conjugate Gradient algorithm. It requires A to be a positive semi-definite matrix.
+Solves for x in Ax = b, using the Preconditioned Conjugate Gradient algorithm. It requires A to be a positive semi-definite matrix to guarantee good results.
 
 ## Requirements
 
@@ -12,9 +12,10 @@ Only python and numpy are required
 
 You can look at ```test.py``` for an example:
 ```
-import pcg
-
-x_pcg = pcg.solve(A, b, "SS", block_size)
+from PCG import PCG
+options = {'preconditioner_type' : 'SS'}
+pcg = PCG(A, b, nx, n_blocks, options = options)
+x_pcg = pcg.solve()
 ```
 
 ## Preconditoners

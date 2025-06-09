@@ -124,26 +124,62 @@ class PCG:
 
 			return Pinv
 
-		elif preconditioner_type == "SS": # Symmetric Stair (for blocktridiagonal of blocksize nq+nv)
+		elif preconditioner_type == "SS": # Symmetric Stair (for blocktridiagonal of block_size)
 			n_blocks = int(A.shape[0] / block_size)
 			Pinv = np.zeros(A.shape)
+			# P = np.zeros(A.shape)
 			# compute stair inverse
 			for k in range(n_blocks):
 				# compute the diagonal term
 				Pinv[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size] = \
 					self.invert_matrix(A[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size])
+				# P[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size] = \
+					# A[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size]
 				if np.mod(k, 2): # odd block includes off diag terms
 					# Pinv_left_of_diag_k = -Pinv_diag_k * A_left_of_diag_k * -Pinv_diag_km1
 					Pinv[k*block_size:(k+1)*block_size, (k-1)*block_size:k*block_size] = \
 						-np.matmul(Pinv[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size], \
 								   np.matmul(A[k*block_size:(k+1)*block_size, (k-1)*block_size:k*block_size], \
 									  		 Pinv[(k-1)*block_size:k*block_size, (k-1)*block_size:k*block_size]))
+					# P[k*block_size:(k+1)*block_size, (k-1)*block_size:k*block_size] = A[k*block_size:(k+1)*block_size, (k-1)*block_size:k*block_size]
 				elif k > 0: # compute the off diag term for previous odd block (if it exists)
 					# Pinv_right_of_diag_km1 = -Pinv_diag_km1 * A_right_of_diag_km1 * -Pinv_diag_k
 					Pinv[(k-1)*block_size:k*block_size, k*block_size:(k+1)*block_size] = \
 						-np.matmul(Pinv[(k-1)*block_size:k*block_size, (k-1)*block_size:k*block_size], \
 								   np.matmul(A[(k-1)*block_size:k*block_size, k*block_size:(k+1)*block_size], \
 											 Pinv[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size]))
+					# P[(k-1)*block_size:k*block_size, k*block_size:(k+1)*block_size] = A[(k-1)*block_size:k*block_size, k*block_size:(k+1)*block_size]
+			# handle incomplete last block
+			remainder = A.shape[0] % block_size
+			if remainder:
+				# compute the diagonal term
+				Pinv[(k+1)*block_size:, (k+1)*block_size:] = \
+					self.invert_matrix(A[(k+1)*block_size:, (k+1)*block_size:])
+				# P[(k+1)*block_size:, (k+1)*block_size:] = \
+					# A[(k+1)*block_size:, (k+1)*block_size:]
+				if np.mod(k, 2): # odd block includes off diag terms
+					# Pinv_left_of_diag_k = -Pinv_diag_k * A_left_of_diag_k * -Pinv_diag_km1
+					Pinv[(k+1)*block_size:, k*block_size:(k+1)*block_size] = \
+						-np.matmul(Pinv[(k+1)*block_size:, (k+1)*block_size:], \
+								   np.matmul(A[(k+1)*block_size:, k*block_size:(k+1)*block_size], \
+									  		 Pinv[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size]))
+					# P[(k+1)*block_size:, k*block_size:(k+1)*block_size] = A[(k+1)*block_size:, k*block_size:(k+1)*block_size]
+				elif k > 0: # compute the off diag term for previous odd block (if it exists)
+					# Pinv_right_of_diag_km1 = -Pinv_diag_km1 * A_right_of_diag_km1 * -Pinv_diag_k
+					Pinv[k*block_size:(k+1)*block_size, (k+1)*block_size:] = \
+						-np.matmul(Pinv[k*block_size:(k+1)*block_size, k*block_size:(k+1)*block_size], \
+								   np.matmul(A[k*block_size:(k+1)*block_size, (k+1)*block_size:], \
+											 Pinv[(k+1)*block_size:, (k+1)*block_size:]))
+					# P[k*block_size:(k+1)*block_size, (k+1)*block_size:] = A[k*block_size:(k+1)*block_size, (k+1)*block_size:]
+			# import sys
+			# print("-----pcg----")
+			# np.set_printoptions(threshold=sys.maxsize,linewidth=np.inf)
+			# print(P)
+			# print(Pinv)
+			# pinv2 = np.linalg.inv(P)
+			# print(pinv2)
+			# print(Pinv-pinv2)
+			# print("-----pcg----")
 			# make symmetric
 			for k in range(n_blocks):
 				if np.mod(k, 2): # copy from odd blocks
